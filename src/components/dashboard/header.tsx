@@ -5,11 +5,13 @@ import { useTenant } from '@/contexts/tenant-context'
 import { useMetricsStore } from '@/stores/metrics-store'
 import { calculateScratchieIndex, getScratchieIndexColor, getScratchieIndexLabel, calculateROI } from '@/lib/calculations'
 import { formatCurrency, cn } from '@/lib/utils'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { Info } from 'lucide-react'
 
 export function DashboardHeader() {
   const { company } = useTenant()
   const { quarters, loadDefaultData } = useMetricsStore()
+  const [showTooltip, setShowTooltip] = useState(false)
 
   useEffect(() => {
     if (quarters.length === 0) {
@@ -66,11 +68,39 @@ export function DashboardHeader() {
 
         {/* Center - Scratchie Index */}
         <div className="flex items-center gap-12">
-          <div className="text-center">
-            <p className="text-sm text-gray-500 mb-2 font-medium">Scratchie Index</p>
-            <div className={cn('rounded-xl px-8 py-4', getScratchieIndexColor(scratchieIndex))}>
+          <div className="text-center relative">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <p className="text-sm text-gray-500 font-medium">Scratchie Index</p>
+              <button
+                className="relative"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >
+                <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                {showTooltip && (
+                  <div className="absolute z-10 w-72 p-4 bg-white rounded-lg shadow-xl border border-gray-200 -top-2 left-6">
+                    <p className="text-sm font-semibold mb-2">How the Scratchie Index is calculated:</p>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      <li>• Quality (30%): First pass yield, defect rates</li>
+                      <li>• Productivity (25%): Cycle time, daily output</li>
+                      <li>• Safety (20%): Incident rates, near misses</li>
+                      <li>• Engagement (15%): Absenteeism, turnover</li>
+                      <li>• Sustainability (10%): Waste, energy usage</li>
+                    </ul>
+                    <p className="text-xs text-gray-500 mt-2">Score range: 0-100 (higher is better)</p>
+                  </div>
+                )}
+              </button>
+            </div>
+            <div className={cn('rounded-xl px-8 py-4 relative', getScratchieIndexColor(scratchieIndex))}>
+              <div className="absolute top-2 left-2 text-xs font-medium opacity-75">
+                Baseline: 58
+              </div>
               <p className="text-4xl font-bold">{scratchieIndex}</p>
               <p className="text-sm font-medium mt-1">{getScratchieIndexLabel(scratchieIndex)}</p>
+              {scratchieIndex > 58 && (
+                <p className="text-xs mt-1 font-semibold">+{scratchieIndex - 58} from baseline</p>
+              )}
             </div>
           </div>
 

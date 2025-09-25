@@ -130,9 +130,35 @@ export function MetricTile({
     }
   })
 
-  const isPerformanceGood = isLowerBetter ? value <= target : value >= target
-  const performanceColor = isPerformanceGood ? 'text-green-600' : 'text-red-600'
-  const bgColor = isPerformanceGood ? 'bg-green-50' : 'bg-red-50'
+  // Get baseline value for comparison
+  const baselineQuarter = quarters.find(q => q.quarter.isBaseline)
+  const baselineValue = baselineQuarter?.actual ? (() => {
+    switch (metricKey) {
+      case 'firstPassYield':
+        return baselineQuarter.actual.quality?.percentComplete || 0
+      case 'cycleTime':
+        return baselineQuarter.actual.production?.avgTimePerPod || 0
+      case 'defectRate':
+        return baselineQuarter.actual.quality?.totalDefects && baselineQuarter.actual.quality?.podsInspected
+          ? baselineQuarter.actual.quality.totalDefects / baselineQuarter.actual.quality.podsInspected
+          : 0
+      case 'overtimePercentage':
+        return baselineQuarter.actual.production?.overtimeHours && baselineQuarter.actual.workforce
+          ? (baselineQuarter.actual.production.overtimeHours / (baselineQuarter.actual.workforce.fullTimeStaff * 160)) * 100
+          : 0
+      case 'dailyOutput':
+        return baselineQuarter.actual.production?.dailyPodOutput || 0
+      default:
+        return 0
+    }
+  })() : 0
+
+  const hasImproved = isLowerBetter ? value < baselineValue : value > baselineValue
+  const improvementAmount = Math.abs(value - baselineValue)
+  const improvementPercent = baselineValue !== 0 ? (improvementAmount / baselineValue) * 100 : 0
+
+  const performanceColor = hasImproved ? 'text-green-600' : 'text-gray-600'
+  const bgColor = hasImproved ? 'bg-green-50' : 'bg-gray-50'
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
@@ -215,11 +241,13 @@ export function MetricTile({
         </ResponsiveContainer>
       </div>
 
-      {/* Status Indicator */}
+      {/* Status Indicator - Show improvement from baseline */}
       <div className={cn('mt-4 p-3 rounded-lg text-xs font-medium', bgColor, performanceColor)}>
-        {isPerformanceGood
-          ? `Meeting target (${((Math.abs(value - target) / target) * 100).toFixed(0)}% ${isLowerBetter ? 'below' : 'above'})`
-          : `${((Math.abs(value - target) / target) * 100).toFixed(0)}% ${isLowerBetter ? 'above' : 'below'} target`}
+        {hasImproved
+          ? `${improvementPercent.toFixed(0)}% improvement from baseline`
+          : value === baselineValue
+          ? 'Baseline performance'
+          : `${improvementPercent.toFixed(0)}% below baseline`}
       </div>
     </div>
   )

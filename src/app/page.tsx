@@ -2,6 +2,7 @@
 
 import { DashboardHeader } from '@/components/dashboard/header'
 import { DashboardTabs } from '@/components/dashboard/tabs'
+import { AuthGuard } from '@/components/auth/auth-guard'
 import { useEffect } from 'react'
 import { useMetricsStore } from '@/stores/metrics-store'
 
@@ -13,11 +14,13 @@ export default function DashboardPage() {
   }, [loadDefaultData])
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-[1600px] mx-auto space-y-6">
-        <DashboardHeader />
-        <DashboardTabs />
+    <AuthGuard>
+      <div className="min-h-screen p-6">
+        <div className="max-w-[1600px] mx-auto space-y-6">
+          <DashboardHeader />
+          <DashboardTabs />
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   )
 }

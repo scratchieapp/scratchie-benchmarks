@@ -250,7 +250,7 @@ export function DataEntryView() {
             <option value="">Choose a quarter...</option>
             {availableQuarters.map(q => (
               <option key={q.quarter.id} value={q.quarter.id}>
-                {q.quarter.quarter} - {q.quarter.label}
+                {q.quarter.quarter}
               </option>
             ))}
           </select>
