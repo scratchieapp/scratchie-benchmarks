@@ -12,6 +12,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Scratchie Manufacturing Quality Benchmark",
   description: "Track manufacturing quality improvements and ROI with Scratchie",
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
