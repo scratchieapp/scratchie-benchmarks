@@ -1,13 +1,20 @@
 'use client'
 
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, Legend } from 'recharts'
-import { QuarterData } from '@/lib/calculations'
+import { QuarterData, PartialQuarterData } from '@/lib/calculations'
+
+interface Quarter {
+  id: string
+  isBaseline: boolean
+  quarter: string
+  label: string
+}
 
 interface PerformanceRadarProps {
   quarters: Array<{
-    quarter: any
+    quarter: Quarter
     actual: QuarterData | null
-    target: Partial<QuarterData> | null
+    target: PartialQuarterData | null
   }>
 }
 

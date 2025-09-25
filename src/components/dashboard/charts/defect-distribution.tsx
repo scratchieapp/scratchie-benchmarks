@@ -1,6 +1,6 @@
 'use client'
 
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts'
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
 import { QuarterData } from '@/lib/calculations'
 
 interface DefectDistributionProps {
@@ -49,7 +49,22 @@ export function DefectDistribution({ baseline }: DefectDistributionProps) {
     },
   ]
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface TooltipPayload {
+    name: string
+    value: number
+    payload: {
+      name: string
+      value: number
+      percentage: string
+    }
+  }
+
+  interface CustomTooltipProps {
+    active?: boolean
+    payload?: TooltipPayload[]
+  }
+
+  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">

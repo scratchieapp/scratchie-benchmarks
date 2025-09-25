@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Quarter } from '@/types'
-import { QuarterData } from '@/lib/calculations'
+import { QuarterData, PartialQuarterData } from '@/lib/calculations'
 import { syncQuartersData } from '@/config/sync-industries'
 
 interface QuarterWithData {
   quarter: Quarter
   actual: QuarterData | null
-  target: Partial<QuarterData> | null
+  target: PartialQuarterData | null
 }
 
 interface MetricsStore {
@@ -17,7 +17,7 @@ interface MetricsStore {
   // Actions
   setQuarters: (quarters: QuarterWithData[]) => void
   updateActualMetrics: (quarterId: string, data: QuarterData) => void
-  updateTargetMetrics: (quarterId: string, data: Partial<QuarterData>) => void
+  updateTargetMetrics: (quarterId: string, data: PartialQuarterData) => void
   setSelectedQuarter: (quarterId: string) => void
   loadDefaultData: () => void
 }

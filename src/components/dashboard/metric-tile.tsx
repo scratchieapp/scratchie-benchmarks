@@ -1,10 +1,24 @@
 'use client'
 
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, Cell } from 'recharts'
 import { TrendingUp, TrendingDown, Info } from 'lucide-react'
 import { useTenant } from '@/contexts/tenant-context'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import type { QuarterData, PartialQuarterData } from '@/lib/calculations'
+
+interface Quarter {
+  id: string
+  quarter: string
+  label: string
+  isBaseline: boolean
+}
+
+interface QuarterWithData {
+  quarter: Quarter
+  actual: QuarterData | null
+  target: PartialQuarterData | null
+}
 
 interface MetricTileProps {
   title: string
@@ -12,7 +26,7 @@ interface MetricTileProps {
   unit: string
   target: number
   metricKey: string
-  quarters: any[]
+  quarters: QuarterWithData[]
   trend?: 'up' | 'down'
   isLowerBetter?: boolean
   prefix?: string
@@ -86,19 +100,19 @@ export function MetricTile({
         case 'absenteeism':
           const baseline = quarters.find(qt => qt.quarter.isBaseline)
           const workDays = 65
-          metricValue = q.target.workforce && baseline?.actual?.workforce
+          metricValue = q.target.workforce?.sickLeaveDays && baseline?.actual?.workforce
             ? (q.target.workforce.sickLeaveDays / (baseline.actual.workforce.fullTimeStaff * workDays)) * 100
             : 0
           break
         case 'defectsPerPod':
           const baselineQ = quarters.find(qt => qt.quarter.isBaseline)
-          metricValue = q.target.quality && baselineQ?.actual?.quality
+          metricValue = q.target.quality?.totalDefects && baselineQ?.actual?.quality
             ? q.target.quality.totalDefects / baselineQ.actual.quality.podsInspected
             : 0
           break
         case 'overtimePercentage':
           const baselineQuarter = quarters.find(qt => qt.quarter.isBaseline)
-          metricValue = q.target.production && baselineQuarter?.actual?.workforce
+          metricValue = q.target.production?.overtimeHours && baselineQuarter?.actual?.workforce
             ? (q.target.production.overtimeHours / (baselineQuarter.actual.workforce.fullTimeStaff * 160)) * 100
             : 0
           break
@@ -172,7 +186,10 @@ export function MetricTile({
             />
             <YAxis hide />
             <Tooltip
-              formatter={(value: any) => `${prefix}${value.toFixed(1)}${unit}`}
+              formatter={(value: number | string) => {
+                const numValue = typeof value === 'number' ? value : parseFloat(value as string)
+                return `${prefix}${numValue.toFixed(1)}${unit}`
+              }}
             />
             <ReferenceLine
               y={target}
@@ -180,19 +197,20 @@ export function MetricTile({
               strokeDasharray="3 3"
               strokeWidth={1.5}
             />
-            <Bar
-              dataKey="value"
-              fill={(entry: any) => {
-                if (entry.isCurrent) return '#fbbf24'
-                if (entry.type === 'actual') return '#3b82f6'
-                return '#e5e7eb'
-              }}
-              stroke={(entry: any) => {
-                if (entry.type === 'target') return '#9ca3af'
-                return 'none'
-              }}
-              strokeWidth={1}
-            />
+            <Bar dataKey="value">
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={
+                    entry.isCurrent ? '#fbbf24' :
+                    entry.type === 'actual' ? '#3b82f6' :
+                    '#e5e7eb'
+                  }
+                  stroke={entry.type === 'target' ? '#9ca3af' : 'none'}
+                  strokeWidth={entry.type === 'target' ? 1 : 0}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

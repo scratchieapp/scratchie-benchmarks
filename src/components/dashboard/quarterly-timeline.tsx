@@ -2,12 +2,20 @@
 
 import { CheckCircle, Circle, Target } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { QuarterData, PartialQuarterData } from '@/lib/calculations'
+
+interface Quarter {
+  id: string
+  quarter: string
+  label: string
+  isBaseline: boolean
+}
 
 interface QuarterlyTimelineProps {
   quarters: Array<{
-    quarter: any
-    actual: any | null
-    target: any | null
+    quarter: Quarter
+    actual: QuarterData | null
+    target: PartialQuarterData | null
   }>
 }
 

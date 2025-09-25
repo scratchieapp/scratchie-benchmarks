@@ -28,7 +28,14 @@ export function DashboardHeader() {
   // Calculate projected ROI
   const lastQuarter = quarters[quarters.length - 1]
   const roi = baseline?.actual && lastQuarter?.target
-    ? calculateROI(baseline.actual, lastQuarter.target, company.config.calculations.roiAssumptions)
+    ? calculateROI(baseline.actual, lastQuarter.target, {
+        overtimeRate: company.config.calculations.roiAssumptions.hourlyLaborRate *
+                      company.config.calculations.roiAssumptions.overtimeMultiplier,
+        podMargin: company.config.calculations.roiAssumptions.podProfitMargin,
+        workingDays: company.config.calculations.roiAssumptions.annualWorkingDays,
+        absenteeismCost: company.config.calculations.roiAssumptions.productivityLossPerAbsence *
+                         company.config.calculations.roiAssumptions.annualWorkingDays
+      })
     : null
 
   return (

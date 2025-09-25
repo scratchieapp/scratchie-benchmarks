@@ -41,6 +41,12 @@ export interface QuarterData {
   workforce: WorkforceData
 }
 
+export type PartialQuarterData = {
+  production?: Partial<ProductionData>
+  quality?: Partial<QualityData>
+  workforce?: Partial<WorkforceData>
+}
+
 export interface Metrics {
   throughputRate: number
   downtimePercentage: number
@@ -102,7 +108,7 @@ export function calculateMetrics(data: QuarterData | null): Metrics | null {
 
 export function calculateROI(
   baseline: QuarterData,
-  target: Partial<QuarterData>,
+  target: PartialQuarterData,
   assumptions = {
     overtimeRate: 50,
     podMargin: 500,
@@ -118,22 +124,26 @@ export function calculateROI(
     total: 0,
   }
 
-  if (target.quality) {
+  if (target.quality?.costOfQuality !== undefined) {
     roi.qualitySavings = (baseline.quality.costOfQuality - target.quality.costOfQuality) * 12
   }
 
   if (target.production) {
-    roi.overtimeSavings =
-      (baseline.production.overtimeHours - target.production.overtimeHours) *
-      assumptions.overtimeRate * 12
+    if (target.production.overtimeHours !== undefined) {
+      roi.overtimeSavings =
+        (baseline.production.overtimeHours - target.production.overtimeHours) *
+        assumptions.overtimeRate * 12
+    }
 
-    roi.productivityGains =
-      (target.production.dailyPodOutput - baseline.production.dailyPodOutput) *
-      assumptions.workingDays *
-      assumptions.podMargin
+    if (target.production.dailyPodOutput !== undefined) {
+      roi.productivityGains =
+        (target.production.dailyPodOutput - baseline.production.dailyPodOutput) *
+        assumptions.workingDays *
+        assumptions.podMargin
+    }
   }
 
-  if (target.workforce) {
+  if (target.workforce?.sickLeaveDays !== undefined) {
     const baselineAbsenteeism = baseline.workforce.sickLeaveDays
     const targetAbsenteeism = target.workforce.sickLeaveDays
     roi.absenteeismSavings =

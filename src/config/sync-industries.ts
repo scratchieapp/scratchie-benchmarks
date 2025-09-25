@@ -1,5 +1,5 @@
 import { Company, Quarter } from '@/types'
-import { QuarterData } from '@/lib/calculations'
+import { QuarterData, PartialQuarterData } from '@/lib/calculations'
 
 export const syncIndustriesConfig: Company = {
   id: 'sync-industries',
@@ -167,7 +167,7 @@ export const syncBaselineData: QuarterData = {
 export const syncQuartersData: Array<{
   quarter: Quarter
   actual: QuarterData | null
-  target: Partial<QuarterData> | null
+  target: PartialQuarterData | null
 }> = [
   {
     quarter: {

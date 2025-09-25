@@ -38,7 +38,7 @@ export interface MetricDefinition {
   formula?: string
   impact?: string
   isHigherBetter: boolean
-  customFormula?: any
+  customFormula?: string | ((value: number) => number)
 }
 
 export interface CalculationRules {
@@ -82,7 +82,7 @@ export interface ActualMetrics {
   id: string
   quarterId: string
   metricType: 'production' | 'quality' | 'workforce'
-  metricData: any // JSON data
+  metricData: Record<string, unknown> // JSON data
   createdAt: Date
 }
 
@@ -90,7 +90,7 @@ export interface TargetMetrics {
   id: string
   quarterId: string
   metricType: 'production' | 'quality' | 'workforce'
-  metricData: any // JSON data
+  metricData: Record<string, unknown> // JSON data
   createdAt: Date
 }
 
@@ -109,7 +109,7 @@ export interface IndustryTemplate {
   description: string
   metrics: MetricDefinition[]
   benchmarks: BenchmarkSettings
-  roiAssumptions: any
+  roiAssumptions: Record<string, number>
 }
 
 export interface TenantContext {
