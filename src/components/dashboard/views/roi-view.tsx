@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useMetricsStore } from '@/stores/metrics-store'
 import { useTenant } from '@/contexts/tenant-context'
-import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line } from 'recharts'
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Calculator, Award, Edit2, Save, X } from 'lucide-react'
 import { calculateROI, calculateScratchiePrice, calculatePaybackPeriod } from '@/lib/calculations'
 import { formatCurrency, cn } from '@/lib/utils'
@@ -54,8 +54,8 @@ export function ROIView() {
   // Benchmark comparison data with improvement tracking
   const currentTarget = lastQuarter?.target
 
-  // Separate data for different Y-axes
-  const percentageMetrics = [
+  // All metrics for the main chart (excluding defects which will be shown separately)
+  const mainMetrics = [
     {
       metric: 'First Pass Yield (%)',
       baseline: 49.4,
@@ -63,6 +63,14 @@ export function ROIView() {
       industry: 85,
       worldClass: 95,
       improvement: ((currentTarget?.quality?.percentComplete || 62) - 49.4).toFixed(1),
+    },
+    {
+      metric: 'Cycle Time (hrs)',
+      baseline: 45,
+      current: currentTarget?.production?.avgTimePerPod || 42,
+      industry: 32,
+      worldClass: 24,
+      improvement: (45 - (currentTarget?.production?.avgTimePerPod || 42)).toFixed(1),
     },
     {
       metric: 'Absenteeism (%)',
@@ -74,18 +82,8 @@ export function ROIView() {
     },
   ]
 
-  const timeMetrics = [
-    {
-      metric: 'Cycle Time (hrs)',
-      baseline: 45,
-      current: currentTarget?.production?.avgTimePerPod || 42,
-      industry: 32,
-      worldClass: 24,
-      improvement: (45 - (currentTarget?.production?.avgTimePerPod || 42)).toFixed(1),
-    },
-  ]
-
-  const defectMetrics = [
+  // Separate defects data for its own chart
+  const defectsData = [
     {
       metric: 'Defects/Pod',
       baseline: 4.95,
@@ -96,25 +94,8 @@ export function ROIView() {
     },
   ]
 
-  // Combine all metrics for display but handle axes separately
-  const benchmarkData = [...percentageMetrics, ...timeMetrics, ...defectMetrics].map(item => {
-    if (item.metric === 'Defects/Pod') {
-      return {
-        ...item,
-        // Move defects data to separate fields for right axis
-        defectBaseline: item.baseline,
-        defectCurrent: item.current,
-        defectIndustry: item.industry,
-        defectWorldClass: item.worldClass,
-        // Zero out the main fields so they don't show on left axis
-        baseline: 0,
-        current: 0,
-        industry: 0,
-        worldClass: 0,
-      }
-    }
-    return item
-  })
+  // Combined data for the improvement summary
+  const benchmarkData = [...mainMetrics, ...defectsData]
 
   const handleSaveAssumptions = () => {
     setEditingAssumptions(false)
@@ -399,26 +380,49 @@ export function ROIView() {
           </div>
         </div>
 
-        <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart data={benchmarkData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="metric" angle={-20} textAnchor="end" height={80} />
-            <YAxis yAxisId="left" label={{ value: 'Percentage / Hours', angle: -90, position: 'insideLeft' }} />
-            <YAxis yAxisId="right" orientation="right" label={{ value: 'Defects per Pod', angle: 90, position: 'insideRight' }} />
-            <Tooltip />
-            <Legend />
-            {/* Bars for percentage and hours metrics (left axis) */}
-            <Bar yAxisId="left" dataKey="baseline" fill="#ef4444" name="Baseline (Q3 2024)" />
-            <Bar yAxisId="left" dataKey="current" fill="#f59e0b" name="Current Target" />
-            <Bar yAxisId="left" dataKey="industry" fill="#3b82f6" name="Industry Average" />
-            <Bar yAxisId="left" dataKey="worldClass" fill="#10b981" name="World Class" />
-            {/* Lines for defects metrics (right axis) */}
-            <Line yAxisId="right" type="monotone" dataKey="defectBaseline" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444' }} name="Defects Baseline" />
-            <Line yAxisId="right" type="monotone" dataKey="defectCurrent" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b' }} name="Defects Current" />
-            <Line yAxisId="right" type="monotone" dataKey="defectIndustry" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} name="Defects Industry" />
-            <Line yAxisId="right" type="monotone" dataKey="defectWorldClass" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981' }} name="Defects World Class" />
-          </ComposedChart>
-        </ResponsiveContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Main metrics chart (FPY, Cycle Time, Absenteeism) */}
+          <div className="lg:col-span-2">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={mainMetrics}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="metric" angle={-20} textAnchor="end" height={80} />
+                <YAxis label={{ value: 'Percentage / Hours', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="baseline" fill="#ef4444" name="Baseline (Q3 2024)" />
+                <Bar dataKey="current" fill="#f59e0b" name="Current Target" />
+                <Bar dataKey="industry" fill="#3b82f6" name="Industry Average" />
+                <Bar dataKey="worldClass" fill="#10b981" name="World Class" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Separate Defects chart */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2 text-center">Defects per Pod</h4>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={defectsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="metric" hide />
+                <YAxis label={{ value: 'Defects/Pod', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Bar dataKey="baseline" fill="#ef4444" name="Baseline" />
+                <Bar dataKey="current" fill="#f59e0b" name="Current" />
+                <Bar dataKey="industry" fill="#3b82f6" name="Industry" />
+                <Bar dataKey="worldClass" fill="#10b981" name="World Class" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-2 text-center">
+              <p className="text-xs text-gray-600">
+                Current: <span className="font-semibold">{defectsData[0].current.toFixed(2)}</span>
+              </p>
+              <p className="text-xs text-green-600 font-semibold">
+                {defectsData[0].improvement} improvement
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="mt-4">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">Improvement Summary from Baseline</h4>

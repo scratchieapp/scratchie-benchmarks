@@ -68,9 +68,10 @@ export function DashboardHeader() {
 
         {/* Center - Scratchie Index */}
         <div className="flex items-center gap-12">
-          <div className="text-center relative">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <p className="text-sm text-gray-500 font-medium">Scratchie Index</p>
+          <div className="relative">
+            {/* Title and Info */}
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider">Scratchie Index</p>
               <button
                 className="relative"
                 onMouseEnter={() => setShowTooltip(true)}
@@ -92,14 +93,52 @@ export function DashboardHeader() {
                 )}
               </button>
             </div>
-            <div className={cn('rounded-xl px-8 py-4 relative', getScratchieIndexColor(scratchieIndex))}>
-              <div className="absolute top-2 left-2 text-xs font-medium opacity-75">
-                Baseline: 58
+
+            {/* Score Display */}
+            <div className="flex items-center gap-4">
+              {/* Baseline */}
+              <div className="text-center">
+                <p className="text-xs text-gray-500 uppercase mb-1">Baseline</p>
+                <div className="bg-gray-100 rounded-lg px-4 py-2">
+                  <p className="text-2xl font-bold text-gray-600">58</p>
+                </div>
               </div>
-              <p className="text-4xl font-bold">{scratchieIndex}</p>
-              <p className="text-sm font-medium mt-1">{getScratchieIndexLabel(scratchieIndex)}</p>
-              {scratchieIndex > 58 && (
-                <p className="text-xs mt-1 font-semibold">+{scratchieIndex - 58} from baseline</p>
+
+              {/* Arrow */}
+              <div className="flex items-center">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </div>
+
+              {/* Current Score */}
+              <div className="text-center">
+                <p className="text-xs text-gray-500 uppercase mb-1">Current</p>
+                <div className={cn('rounded-lg px-6 py-2', getScratchieIndexColor(scratchieIndex))}>
+                  <p className="text-3xl font-bold">{scratchieIndex}</p>
+                  <p className="text-xs font-medium mt-1">{getScratchieIndexLabel(scratchieIndex)}</p>
+                </div>
+              </div>
+
+              {/* Improvement */}
+              {scratchieIndex !== 58 && (
+                <div className="text-center ml-4">
+                  <p className="text-xs text-gray-500 uppercase mb-1">Change</p>
+                  <div className={cn(
+                    'rounded-lg px-3 py-2',
+                    scratchieIndex > 58 ? 'bg-green-100' : 'bg-red-100'
+                  )}>
+                    <p className={cn(
+                      'text-xl font-bold',
+                      scratchieIndex > 58 ? 'text-green-600' : 'text-red-600'
+                    )}>
+                      {scratchieIndex > 58 ? '+' : ''}{scratchieIndex - 58}
+                    </p>
+                    <p className="text-xs font-medium">
+                      {scratchieIndex > 58 ? 'Improved' : 'Declined'}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
