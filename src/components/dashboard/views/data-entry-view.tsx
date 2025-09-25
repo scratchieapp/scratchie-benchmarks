@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useMetricsStore } from '@/stores/metrics-store'
 import { useTenant } from '@/contexts/tenant-context'
 import { Save, Upload, AlertCircle, CheckCircle, Calendar, FileText } from 'lucide-react'
@@ -20,22 +20,26 @@ export function DataEntryView() {
   const [formData, setFormData] = useState<PartialFormData>({})
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!company || quarters.length === 0) {
     return <div>Loading...</div>
   }
 
-  const availableQuarters = quarters.filter(q => !q.quarter.isBaseline && !q.actual)
+  const availableQuarters = quarters.filter(q => !q.quarter.isBaseline)
 
   const handleQuarterSelect = (quarterId: string) => {
     setSelectedQuarter(quarterId)
     setSaveStatus('idle')
     setValidationErrors([])
 
-    // Load any existing data
+    // Load any existing data (actual or target)
     const quarter = quarters.find(q => q.quarter.id === quarterId)
     if (quarter?.actual) {
       setFormData(quarter.actual)
+    } else if (quarter?.target) {
+      // Pre-fill with target data if no actual data exists
+      setFormData(quarter.target)
     } else {
       setFormData({})
     }
@@ -52,6 +56,101 @@ export function DataEntryView() {
 
     setValidationErrors(errors)
     return errors.length === 0
+  }
+
+  const handleCSVImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const text = e.target?.result as string
+      const lines = text.split('\n')
+      const headers = lines[0].split(',')
+      const values = lines[1]?.split(',') || []
+
+      // Parse CSV values into form data
+      const importedData: PartialFormData = {
+        production: {
+          avgTimePerPod: parseFloat(values[headers.indexOf('Cycle Time (hours)')]) || undefined,
+          dailyPodOutput: parseFloat(values[headers.indexOf('Daily Pod Output')]) || undefined,
+          overtimeHours: parseFloat(values[headers.indexOf('Overtime Hours')]) || undefined,
+          downtimeTarget: parseFloat(values[headers.indexOf('Downtime Target')]) || undefined,
+          downtimeActual: parseFloat(values[headers.indexOf('Downtime Actual')]) || undefined,
+        },
+        quality: {
+          costOfQuality: parseFloat(values[headers.indexOf('Cost of Quality ($)')]) || undefined,
+          totalDefects: parseFloat(values[headers.indexOf('Total Defects')]) || undefined,
+          percentComplete: parseFloat(values[headers.indexOf('First Pass Yield (%)')]) || undefined,
+          podsInspected: parseFloat(values[headers.indexOf('Pods Inspected')]) || undefined,
+          wrappedPods: parseFloat(values[headers.indexOf('Wrapped Pods')]) || undefined,
+        },
+        workforce: {
+          fullTimeStaff: parseFloat(values[headers.indexOf('Full-Time Staff')]) || undefined,
+          sickLeaveDays: parseFloat(values[headers.indexOf('Sick Leave Days')]) || undefined,
+          totalWorkers: parseFloat(values[headers.indexOf('Total Workers')]) || undefined,
+          supervisors: parseFloat(values[headers.indexOf('Supervisors')]) || undefined,
+        },
+      }
+
+      setFormData(importedData)
+      setSaveStatus('idle')
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  const downloadTemplate = () => {
+    const headers = [
+      'Cycle Time (hours)',
+      'Daily Pod Output',
+      'Overtime Hours',
+      'Downtime Target',
+      'Downtime Actual',
+      'Cost of Quality ($)',
+      'Total Defects',
+      'First Pass Yield (%)',
+      'Pods Inspected',
+      'Wrapped Pods',
+      'Full-Time Staff',
+      'Sick Leave Days',
+      'Total Workers',
+      'Supervisors'
+    ]
+
+    const sampleData = [
+      '45', // Cycle Time
+      '19', // Daily Pod Output
+      '55', // Overtime Hours
+      '10', // Downtime Target
+      '40', // Downtime Actual
+      '5000', // Cost of Quality
+      '9500', // Total Defects
+      '49.4', // First Pass Yield
+      '2200', // Pods Inspected
+      '1087', // Wrapped Pods
+      '64', // Full-Time Staff
+      '265', // Sick Leave Days
+      '108', // Total Workers
+      '7' // Supervisors
+    ]
+
+    const csvContent = [
+      headers.join(','),
+      sampleData.join(',')
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'scratchie_metrics_template.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   const handleSave = async () => {
@@ -114,11 +213,26 @@ export function DataEntryView() {
             <p className="text-gray-600 mt-1">Enter quarterly performance metrics</p>
           </div>
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg border">
-              <Upload className="w-4 h-4" />
-              Import CSV
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg border">
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleCSVImport}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg border"
+              >
+                <Upload className="w-4 h-4" />
+                Import CSV
+              </button>
+            </>
+            <button
+              onClick={downloadTemplate}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg border"
+            >
               <FileText className="w-4 h-4" />
               Download Template
             </button>

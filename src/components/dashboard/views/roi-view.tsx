@@ -45,37 +45,46 @@ export function ROIView() {
 
   // ROI breakdown data
   const roiBreakdown = roi ? [
-    { category: 'Quality Savings', value: roi.qualitySavings, color: '#10b981' },
-    { category: 'Overtime Reduction', value: roi.overtimeSavings, color: '#3b82f6' },
-    { category: 'Productivity Gains', value: roi.productivityGains, color: '#f59e0b' },
-    { category: 'Absenteeism Savings', value: roi.absenteeismSavings, color: '#8b5cf6' },
+    { name: 'Quality Savings', category: 'Quality Savings', value: roi.qualitySavings, color: '#10b981' },
+    { name: 'Overtime Reduction', category: 'Overtime Reduction', value: roi.overtimeSavings, color: '#3b82f6' },
+    { name: 'Productivity Gains', category: 'Productivity Gains', value: roi.productivityGains, color: '#f59e0b' },
+    { name: 'Absenteeism Savings', category: 'Absenteeism Savings', value: roi.absenteeismSavings, color: '#8b5cf6' },
   ] : []
 
-  // Benchmark comparison data
+  // Benchmark comparison data with improvement tracking
+  const currentTarget = lastQuarter?.target
   const benchmarkData = [
     {
-      metric: 'First Pass Yield',
-      sync: 49.4,
+      metric: 'First Pass Yield (%)',
+      baseline: 49.4,
+      current: currentTarget?.quality?.percentComplete || 62,
       industry: 85,
       worldClass: 95,
+      improvement: ((currentTarget?.quality?.percentComplete || 62) - 49.4).toFixed(1),
     },
     {
-      metric: 'Cycle Time',
-      sync: 45,
+      metric: 'Cycle Time (hrs)',
+      baseline: 45,
+      current: currentTarget?.production?.avgTimePerPod || 42,
       industry: 32,
       worldClass: 24,
+      improvement: (45 - (currentTarget?.production?.avgTimePerPod || 42)).toFixed(1),
     },
     {
       metric: 'Defects/Pod',
-      sync: 4.95,
+      baseline: 4.95,
+      current: currentTarget ? (currentTarget.quality?.totalDefects || 0) / (currentTarget.quality?.podsInspected || 1) : 4.2,
       industry: 3.5,
       worldClass: 2,
+      improvement: (4.95 - (currentTarget ? (currentTarget.quality?.totalDefects || 0) / (currentTarget.quality?.podsInspected || 1) : 4.2)).toFixed(2),
     },
     {
-      metric: 'Absenteeism',
-      sync: 6.4,
+      metric: 'Absenteeism (%)',
+      baseline: 6.4,
+      current: currentTarget?.workforce?.sickLeaveDays ? (currentTarget.workforce.sickLeaveDays / (baseline.actual.workforce.totalWorkers * 65)) * 100 : 5.2,
       industry: 2.8,
       worldClass: 2.0,
+      improvement: (6.4 - (currentTarget?.workforce?.sickLeaveDays ? (currentTarget.workforce.sickLeaveDays / (baseline.actual.workforce.totalWorkers * 65)) * 100 : 5.2)).toFixed(1),
     },
   ]
 
@@ -127,7 +136,7 @@ export function ROIView() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ value }) => formatCurrency(value as number)}
+                  label={false}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
@@ -137,7 +146,7 @@ export function ROIView() {
                   ))}
                 </Pie>
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Legend />
+                <Legend formatter={(value) => value} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -331,8 +340,35 @@ export function ROIView() {
       {/* Benchmark Comparison */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Industry Benchmarking</h3>
+          <div>
+            <h3 className="text-lg font-semibold">Industry Benchmarking</h3>
+            <p className="text-sm text-gray-600 mt-1">Baseline Q3 2024 vs Current Performance</p>
+          </div>
           <Award className="w-5 h-5 text-yellow-600" />
+        </div>
+
+        {/* Baseline Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-red-50 rounded-lg p-3">
+            <p className="text-xs text-gray-600 mb-1">Baseline FPY</p>
+            <p className="text-xl font-bold text-red-600">49.4%</p>
+            <p className="text-xs text-gray-500">Q3 2024</p>
+          </div>
+          <div className="bg-yellow-50 rounded-lg p-3">
+            <p className="text-xs text-gray-600 mb-1">Current Target</p>
+            <p className="text-xl font-bold text-yellow-600">62%</p>
+            <p className="text-xs text-green-600">+12.6% improvement</p>
+          </div>
+          <div className="bg-blue-50 rounded-lg p-3">
+            <p className="text-xs text-gray-600 mb-1">Industry Average</p>
+            <p className="text-xl font-bold text-blue-600">85%</p>
+            <p className="text-xs text-gray-500">35.6% gap</p>
+          </div>
+          <div className="bg-green-50 rounded-lg p-3">
+            <p className="text-xs text-gray-600 mb-1">World Class</p>
+            <p className="text-xl font-bold text-green-600">95%</p>
+            <p className="text-xs text-gray-500">45.6% potential</p>
+          </div>
         </div>
 
         <ResponsiveContainer width="100%" height={400}>
@@ -342,30 +378,29 @@ export function ROIView() {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="sync" fill="#ef4444" name="Sync Industries" />
-            <Bar dataKey="industry" fill="#f59e0b" name="Industry Average" />
+            <Bar dataKey="baseline" fill="#ef4444" name="Baseline (Q3 2024)" />
+            <Bar dataKey="current" fill="#f59e0b" name="Current Target" />
+            <Bar dataKey="industry" fill="#3b82f6" name="Industry Average" />
             <Bar dataKey="worldClass" fill="#10b981" name="World Class" />
           </BarChart>
         </ResponsiveContainer>
 
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="p-3 bg-red-50 rounded-lg">
-            <p className="text-sm font-medium text-red-900">Current Performance</p>
-            <p className="text-xs text-red-700 mt-1">
-              Significant improvement potential across all metrics
-            </p>
-          </div>
-          <div className="p-3 bg-yellow-50 rounded-lg">
-            <p className="text-sm font-medium text-yellow-900">Industry Average Gap</p>
-            <p className="text-xs text-yellow-700 mt-1">
-              35-50% behind industry standards
-            </p>
-          </div>
-          <div className="p-3 bg-green-50 rounded-lg">
-            <p className="text-sm font-medium text-green-900">World Class Potential</p>
-            <p className="text-xs text-green-700 mt-1">
-              2-3x improvement possible with best practices
-            </p>
+        <div className="mt-4">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">Improvement Summary from Baseline</h4>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+            {benchmarkData.map((item) => (
+              <div key={item.metric} className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-600">{item.metric}</p>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-sm text-gray-500">{item.baseline}</span>
+                  <span className="text-xs text-gray-400">→</span>
+                  <span className="text-sm font-medium text-gray-900">{typeof item.current === 'number' ? item.current.toFixed(1) : item.current}</span>
+                </div>
+                <p className="text-xs font-semibold text-green-600 mt-1">
+                  {parseFloat(item.improvement) > 0 ? '+' : ''}{item.improvement} {item.metric.includes('%') ? 'pts' : ''}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -136,10 +136,11 @@ export function calculateROI(
     }
 
     if (target.production.dailyPodOutput !== undefined) {
+      // Apply a 70% conservative factor to productivity gains
       roi.productivityGains =
         (target.production.dailyPodOutput - baseline.production.dailyPodOutput) *
         assumptions.workingDays *
-        assumptions.podMargin
+        assumptions.podMargin * 0.7
     }
   }
 
