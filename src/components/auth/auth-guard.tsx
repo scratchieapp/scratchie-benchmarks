@@ -33,9 +33,9 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
       } else {
         // Check for simple password auth in localStorage
         const storedAuth = localStorage.getItem('scratchie_auth')
-        if (storedAuth === 'sync2024') {
+        if (storedAuth === 'sync2025') {
           setAuthLevel('full')
-        } else if (storedAuth === 'simple2024') {
+        } else if (storedAuth === 'simple2025') {
           setAuthLevel('simple')
         }
       }
@@ -50,14 +50,14 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
     e.preventDefault()
 
     // Check password and set appropriate access level
-    if (password === 'sync2024') {
-      localStorage.setItem('scratchie_auth', 'sync2024')
+    if (password === 'sync2025') {
+      localStorage.setItem('scratchie_auth', 'sync2025')
       setAuthLevel('full')
       setError('')
       // Redirect to full dashboard
       window.location.href = '/'
-    } else if (password === 'simple2024') {
-      localStorage.setItem('scratchie_auth', 'simple2024')
+    } else if (password === 'simple2025') {
+      localStorage.setItem('scratchie_auth', 'simple2025')
       setAuthLevel('simple')
       setError('')
       // Redirect to simple dashboard
@@ -142,7 +142,7 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Full access: sync2024 | Simple view: simple2024
+                  Full access: sync2025 | Simple view: simple2025
                 </p>
               </div>
 
@@ -202,7 +202,7 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
           </div>
 
           <p className="text-center text-xs text-gray-500 mt-6">
-            © 2024 Scratchie. All rights reserved.
+            © 2025 Scratchie. All rights reserved.
           </p>
         </div>
       </div>

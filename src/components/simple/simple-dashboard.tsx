@@ -2,7 +2,7 @@
 
 import { useMetricsStore } from '@/stores/metrics-store'
 import { useTenant } from '@/contexts/tenant-context'
-import { calculateScratchieIndex, calculateMetrics, getScratchieIndexColor, getScratchieIndexLabel } from '@/lib/calculations'
+import { calculateScratchieIndex, getScratchieIndexColor, getScratchieIndexLabel } from '@/lib/calculations'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { TrendingUp, TrendingDown, Target, Users, Award, BarChart3, LogOut } from 'lucide-react'
@@ -247,7 +247,7 @@ export function SimpleDashboard() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-xs text-gray-500">
-          <p>© 2024 Scratchie. Manufacturing Quality Dashboard - Simple View</p>
+          <p>© 2025 Scratchie. Manufacturing Quality Dashboard - Simple View</p>
         </div>
       </div>
     </div>

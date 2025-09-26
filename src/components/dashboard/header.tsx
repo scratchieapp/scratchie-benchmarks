@@ -6,7 +6,7 @@ import { useMetricsStore } from '@/stores/metrics-store'
 import { calculateScratchieIndex, getScratchieIndexColor, getScratchieIndexLabel, calculateROI } from '@/lib/calculations'
 import { formatCurrency, cn } from '@/lib/utils'
 import { useEffect, useState } from 'react'
-import { Info } from 'lucide-react'
+import { Info, LogOut } from 'lucide-react'
 
 export function DashboardHeader() {
   const { company } = useTenant()
@@ -159,6 +159,17 @@ export function DashboardHeader() {
               height={40}
               className="h-12 w-auto"
             />
+            <button
+              onClick={() => {
+                localStorage.removeItem('scratchie_auth')
+                window.location.href = '/'
+              }}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm">Logout</span>
+            </button>
           </div>
         </div>
       </div>
