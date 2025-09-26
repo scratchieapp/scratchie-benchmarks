@@ -13,7 +13,6 @@ interface AuthGuardProps {
 export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
   const [authLevel, setAuthLevel] = useState<'full' | 'simple' | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
@@ -70,30 +69,6 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
       }
     } catch (error) {
       setError('Authentication failed. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSupabaseAuth = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) throw error
-
-      if (data.session) {
-        setAuthLevel('full')
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
-      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -171,40 +146,6 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
               </button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-center text-sm text-gray-500">
-                Or sign in with email (if configured)
-              </p>
-
-              {/* Supabase Email Auth (optional) */}
-              <form onSubmit={handleSupabaseAuth} className="mt-4 space-y-4">
-                <div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email address"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading || !email}
-                  className="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Sign in with Email
-                </button>
-              </form>
-            </div>
           </div>
 
           <p className="text-center text-xs text-gray-500 mt-6">
