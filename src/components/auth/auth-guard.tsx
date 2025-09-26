@@ -33,9 +33,9 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
       } else {
         // Check for simple password auth in localStorage
         const storedAuth = localStorage.getItem('scratchie_auth')
-        if (storedAuth === 'sync2025') {
+        if (storedAuth === 'full' || storedAuth === 'sync2025') {
           setAuthLevel('full')
-        } else if (storedAuth === 'simple2025') {
+        } else if (storedAuth === 'simple' || storedAuth === 'simple2025') {
           setAuthLevel('simple')
         }
       }
@@ -46,24 +46,32 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
     }
   }
 
-  const handleSimpleAuth = (e: React.FormEvent) => {
+  const handleSimpleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
+    setError('')
 
-    // Check password and set appropriate access level
-    if (password === 'sync2025') {
-      localStorage.setItem('scratchie_auth', 'sync2025')
-      setAuthLevel('full')
-      setError('')
-      // Redirect to full dashboard
-      window.location.href = '/'
-    } else if (password === 'simple2025') {
-      localStorage.setItem('scratchie_auth', 'simple2025')
-      setAuthLevel('simple')
-      setError('')
-      // Redirect to simple dashboard
-      window.location.href = '/simple'
-    } else {
-      setError('Invalid password')
+    try {
+      // Call API route to validate password
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        localStorage.setItem('scratchie_auth', data.level)
+        setAuthLevel(data.level)
+        window.location.href = data.redirect
+      } else {
+        setError(data.error || 'Invalid password')
+      }
+    } catch (error) {
+      setError('Authentication failed. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -137,13 +145,11 @@ export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder="Enter your access password"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
+                  autoComplete="current-password"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Full access: sync2025 | Simple view: simple2025
-                </p>
               </div>
 
               {error && (
