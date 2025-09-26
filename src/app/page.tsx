@@ -14,7 +14,7 @@ export default function DashboardPage() {
   }, [loadDefaultData])
 
   return (
-    <AuthGuard>
+    <AuthGuard requiredLevel="full">
       <div className="min-h-screen p-6">
         <div className="max-w-[1600px] mx-auto space-y-6">
           <DashboardHeader />

@@ -7,10 +7,11 @@ import Image from 'next/image'
 
 interface AuthGuardProps {
   children: ReactNode
+  requiredLevel?: 'full' | 'simple' | 'any'
 }
 
-export function AuthGuard({ children }: AuthGuardProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+export function AuthGuard({ children, requiredLevel = 'any' }: AuthGuardProps) {
+  const [authLevel, setAuthLevel] = useState<'full' | 'simple' | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,12 +29,14 @@ export function AuthGuard({ children }: AuthGuardProps) {
       const { data: { session } } = await supabase.auth.getSession()
 
       if (session) {
-        setIsAuthenticated(true)
+        setAuthLevel('full')
       } else {
         // Check for simple password auth in localStorage
-        const simpleAuth = localStorage.getItem('scratchie_auth')
-        if (simpleAuth === 'sync2024') {
-          setIsAuthenticated(true)
+        const storedAuth = localStorage.getItem('scratchie_auth')
+        if (storedAuth === 'sync2024') {
+          setAuthLevel('full')
+        } else if (storedAuth === 'simple2024') {
+          setAuthLevel('simple')
         }
       }
     } catch (error) {
@@ -46,11 +49,19 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const handleSimpleAuth = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Simple password check
+    // Check password and set appropriate access level
     if (password === 'sync2024') {
       localStorage.setItem('scratchie_auth', 'sync2024')
-      setIsAuthenticated(true)
+      setAuthLevel('full')
       setError('')
+      // Redirect to full dashboard
+      window.location.href = '/'
+    } else if (password === 'simple2024') {
+      localStorage.setItem('scratchie_auth', 'simple2024')
+      setAuthLevel('simple')
+      setError('')
+      // Redirect to simple dashboard
+      window.location.href = '/simple'
     } else {
       setError('Invalid password')
     }
@@ -70,7 +81,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
       if (error) throw error
 
       if (data.session) {
-        setIsAuthenticated(true)
+        setAuthLevel('full')
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
@@ -90,6 +101,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
       </div>
     )
   }
+
+  const isAuthenticated = authLevel !== null
+  const hasRequiredAccess = requiredLevel === 'any' || authLevel === requiredLevel || authLevel === 'full'
 
   if (!isAuthenticated) {
     return (
@@ -127,7 +141,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">Hint: sync2024</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Full access: sync2024 | Simple view: simple2024
+                </p>
               </div>
 
               {error && (
@@ -188,6 +204,29 @@ export function AuthGuard({ children }: AuthGuardProps) {
           <p className="text-center text-xs text-gray-500 mt-6">
             © 2024 Scratchie. All rights reserved.
           </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if user has required access level
+  if (!hasRequiredAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+          <p className="text-gray-600 mb-6">
+            You don&apos;t have permission to view this dashboard.
+          </p>
+          <button
+            onClick={() => {
+              localStorage.removeItem('scratchie_auth')
+              window.location.href = '/'
+            }}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Return to Login
+          </button>
         </div>
       </div>
     )
