@@ -53,9 +53,8 @@ export function DashboardHeader() {
             className="h-10 w-auto"
           />
           <div className="border-l pl-6">
-            <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
-            <p className="text-gray-600 text-sm mt-1">Manufacturing Quality Excellence Dashboard</p>
-            <div className="flex gap-4 mt-2">
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
               <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                 Baseline: {company.baselineQuarter}
               </span>
@@ -63,21 +62,22 @@ export function DashboardHeader() {
                 {company.subscriptionTier === 'professional' ? 'Professional' : 'Trial'} Plan
               </span>
             </div>
+            <p className="text-gray-600 text-sm">Manufacturing Quality Excellence Dashboard</p>
           </div>
         </div>
 
         {/* Center - Scratchie Index */}
-        <div className="flex items-center gap-12">
-          <div className="relative">
+        <div className="flex items-center gap-8">
+          <div className="border-l pl-8">
             {/* Title and Info */}
-            <div className="flex items-center gap-2 mb-3">
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider">Scratchie Index</p>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Scratchie Index</p>
               <button
                 className="relative"
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               >
-                <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                <Info className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
                 {showTooltip && (
                   <div className="absolute z-10 w-72 p-4 bg-white rounded-lg shadow-xl border border-gray-200 -top-2 left-6">
                     <p className="text-sm font-semibold mb-2">How the Scratchie Index is calculated:</p>
@@ -95,46 +95,44 @@ export function DashboardHeader() {
             </div>
 
             {/* Score Display */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {/* Baseline */}
               <div className="text-center">
-                <p className="text-xs text-gray-500 uppercase mb-1">Baseline</p>
-                <div className="bg-gray-100 rounded-lg px-4 py-2">
-                  <p className="text-2xl font-bold text-gray-600">58</p>
+                <p className="text-[10px] text-gray-500 uppercase mb-0.5 font-medium">Baseline</p>
+                <div className="bg-gray-100 rounded px-3 py-1">
+                  <p className="text-xl font-bold text-gray-600">58</p>
                 </div>
               </div>
 
               {/* Arrow */}
-              <div className="flex items-center">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
 
               {/* Current Score */}
               <div className="text-center">
-                <p className="text-xs text-gray-500 uppercase mb-1">Current</p>
-                <div className={cn('rounded-lg px-6 py-2', getScratchieIndexColor(scratchieIndex))}>
-                  <p className="text-3xl font-bold">{scratchieIndex}</p>
-                  <p className="text-xs font-medium mt-1">{getScratchieIndexLabel(scratchieIndex)}</p>
+                <p className="text-[10px] text-gray-500 uppercase mb-0.5 font-medium">Current</p>
+                <div className={cn('rounded px-4 py-1', getScratchieIndexColor(scratchieIndex))}>
+                  <p className="text-2xl font-bold">{scratchieIndex}</p>
+                  <p className="text-[10px] font-medium -mt-0.5">{getScratchieIndexLabel(scratchieIndex)}</p>
                 </div>
               </div>
 
               {/* Improvement */}
               {scratchieIndex !== 58 && (
-                <div className="text-center ml-4">
-                  <p className="text-xs text-gray-500 uppercase mb-1">Change</p>
+                <div className="text-center">
+                  <p className="text-[10px] text-gray-500 uppercase mb-0.5 font-medium">Change</p>
                   <div className={cn(
-                    'rounded-lg px-3 py-2',
+                    'rounded px-2.5 py-1',
                     scratchieIndex > 58 ? 'bg-green-100' : 'bg-red-100'
                   )}>
                     <p className={cn(
-                      'text-xl font-bold',
+                      'text-lg font-bold',
                       scratchieIndex > 58 ? 'text-green-600' : 'text-red-600'
                     )}>
                       {scratchieIndex > 58 ? '+' : ''}{scratchieIndex - 58}
                     </p>
-                    <p className="text-xs font-medium">
+                    <p className="text-[10px] font-medium -mt-0.5">
                       {scratchieIndex > 58 ? 'Improved' : 'Declined'}
                     </p>
                   </div>
@@ -144,31 +142,31 @@ export function DashboardHeader() {
           </div>
 
           {/* Right side - ROI and Logo */}
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Projected Annual ROI</p>
-              <p className="text-3xl font-bold text-green-600">
+          <div className="flex items-center gap-4 border-l pl-6">
+            <div className="text-center">
+              <p className="text-xs text-gray-500 uppercase font-medium mb-1">Projected Annual ROI</p>
+              <p className="text-2xl font-bold text-green-600">
                 {roi ? formatCurrency(roi.total / 1000) + 'K' : '$0K'}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Conservative Estimate</p>
+              <p className="text-[10px] text-gray-500">Conservative Estimate</p>
             </div>
             <Image
               src="/logos/sync-logo.svg"
               alt={company.name}
-              width={100}
-              height={40}
-              className="h-12 w-auto"
+              width={80}
+              height={32}
+              className="h-10 w-auto"
             />
             <button
               onClick={() => {
                 localStorage.removeItem('scratchie_auth')
                 window.location.href = '/'
               }}
-              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm"
               title="Logout"
             >
-              <LogOut className="w-4 h-4" />
-              <span className="text-sm">Logout</span>
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
